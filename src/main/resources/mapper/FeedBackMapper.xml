@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bysj.booksystem.dao.FeedBackMapper">
+    <resultMap id="feedBack" type="com.bysj.booksystem.model.FeedBack">
+        <id column="opinion_id" property="opinion_id"></id>
+        <result column="user_id" property="user_id"></result>
+        <result column="context" property="context"></result>
+        <result column="feedback_time" property="feedback_time"></result>
+        <result column="handle" property="handle"></result>
+    </resultMap>
+
+
+    <insert id="addOpinion">
+        insert into feedback (user_id,context,feedback_time,handle) values (#{feedBack.user_id},#{feedBack.context},#{feedBack.feedback_time},#{feedBack.handle})
+    </insert>
+
+    <select id="notDealWith" resultType="Integer">
+        select count(*) from feedback where handle = '未处理'
+    </select>
+
+    <select id="getOpinions" resultMap="feedBack">
+    <if test="index != null and limit != null">
+        select * from (
+    </if>
+        select * from feedback where 1=1
+        <if test="startDate != null and endDate != null">
+            and feedback_time between #{startDate} and #{endDate}
+        </if>
+        <if test="condition == '已处理'">
+           and handle = '已处理'
+        </if>
+        <if test="condition == '未处理'">
+          and  handle = '未处理'
+        </if>
+    <if test="index != null and limit != null">
+        ) t limit #{index},#{limit}
+    </if>
+    </select>
+
+    <update id="updateHandle">
+        update feedback set handle = '已处理' where opinion_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+</mapper>

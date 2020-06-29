@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../layui/css/layui.css" th:href="@{/layui/css/layui.css}" media="all">
+    <link rel="stylesheet" href="../css/common.css" th:href="@{/css/common.css}"/>
+    <style>
+        .label-text{
+            margin-left: -20px;
+        }
+    </style>
+</head>
+<body>
+<!--搜索条件-->
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend>根据条件查询(全为空则全查)</legend>
+</fieldset>
+        <div style="display: flex">
+            <input type="text" id="reader-phone" style="width: 20%" name="title"  placeholder="请输入手机号(为空则全查)" autocomplete="off" class="layui-input">
+            <div class="layui-form">
+            <div class="layui-form-item">
+                <label class="layui-form-label">性别：</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="sex" value="male" title="男">
+                    <input type="radio" name="sex" value="female" title="女" >
+                </div>
+            </div>
+            </div>
+            <button type="reset" class="layui-btn  layui-btn-normal" id="reader-reset-btn"><i class="layui-icon layui-icon-refresh"></i>重置</button>
+        </div>
+        <!--数据表格-->
+        <table class="layui-hide" id="userTemplate" lay-filter="user-Template" ></table>
+        <!--头部操作-->
+        <script type="text/html" id="user-title-barDemo">
+            <a class="layui-btn layui-btn-sm" lay-event="search"><i class="layui-icon layui-icon-search"></i>全查</a>
+            <a class="layui-btn layui-btn-sm" lay-event="sup_admin"><i class="layui-icon layui-icon-friends"></i>超级管理员</a>
+            <a class="layui-btn layui-btn-sm" lay-event="admin"><i class="layui-icon layui-icon-group"></i>管理员</a>
+            <a class="layui-btn layui-btn-sm" lay-event="reader"><i class="layui-icon layui-icon-user"></i>读者</a>
+            <a class="layui-btn layui-btn-sm" lay-event="good_reader"><i class="layui-icon layui-icon-praise"></i>优秀读者</a>
+
+            <a class="layui-btn layui-btn-sm" lay-event="exportData"><i class="layui-icon layui-icon-export"></i>导出</a>
+        </script>
+
+
+<!--导出格式选择弹窗-->
+<script id="exportData" type="text/html">
+    <div class="layui-form" style="margin-left: -70px">
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <input type="radio" name="export" value="csv" title="csv" checked>
+                <input type="radio" name="export" value="xls" title="xls">
+            </div>
+        </div>
+    </div>
+</script>
+<div id="exportData-container" style="display: none"></div>
+<script src="../layui/layui.js" th:src="@{/layui/layui.js}"></script>
+<script src="../js/common.js" th:src="@{/js/common.js}"></script>
+
+<script>
+    //注意：选项卡 依赖 element 模块，否则无法进行功能性操作
+    layui.use(['element','table','util','jquery','form','laytpl'], function(){
+        var element = layui.element;
+        let table = layui.table;
+        let util = layui.util;
+        let $ = layui.jquery;
+        let form = layui.form;
+        let laytpl = layui.laytpl;
+
+        let data_book_id='';
+
+//==================用户综合查询======================================================
+        table.render({
+            elem: '#userTemplate', //容器id
+            // height: 312, //容器高度
+            width:1120,
+            where:{
+                "phone":'',
+                "gender":'',
+                "condition":''
+            },
+            even: true, //隔行变色
+            id:'reader_table_overload',
+            toolbar:"#user-title-barDemo",
+            defaultToolbar: [],//隐藏表格右上角工具
+            url: '/comprehensiveController/getUsersByCondition', //数据接口
+            cols:[
+                    [
+                        {field: 'user_id', title: '用户id',width: 120, sort: true},
+                        {field: 'phone', title: '手机号',width: 160,sort: true},
+                        {field: 'user_name', title: '用户名',width: 160, sort: true},
+                        {field: 'gender', title: '性别',width: 160,sort:true},
+                        {field: 'email', title: 'Email', width: 200,sort: true},
+                        {field: 'register_time', title: '注册时间',templet:function(d){return util.toDateString(d.register_time, "yyyy-MM-dd");},width: 160,sort: true},
+                        {field: 'role', title: '角色',sort: true},
+                    ]
+                ],
+            page: {
+                layout: ['count', 'prev', 'page', 'next',  'skip'],
+                groups:3 ,
+                prev: '<<上一页',
+                next:'下一页>>'
+            },
+            limit:10
+        })
+
+        //-------重置按钮-------------------
+        $('#reader-reset-btn').click(function () {
+            $('#reader-phone').val('');
+            // $("input:radio").each(function (i) {
+            //     $(this).prop('checked',false)
+            // });
+            $("input[name='sex']").each(function (i) {
+                $(this).prop('checked',false)
+            });
+            form.render()
+        })
+        //----------监听头部工具栏----------------
+        table.on('toolbar(user-Template)',function (obj) {
+            var checkStatus = table.checkStatus(obj.config.id);
+            let phone = $('#reader-phone').val();
+            let sex ;
+            if ($('input:radio:checked').val() === undefined){
+               sex = '';
+            }else {
+                sex =$('input:radio:checked').val();
+            }
+            switch (obj.event) {
+                case 'search':
+                    searchReaderByCondition(phone,sex,"search")
+                    break;
+                case 'sup_admin':
+                    searchReaderByCondition(phone,sex,"sup_admin")
+                    break;
+                case 'admin':
+                    searchReaderByCondition(phone,sex,"admin")
+                    break;
+                case 'reader':
+                    searchReaderByCondition(phone,sex,"reader")
+                    break;
+                case 'good_reader':
+                    searchReaderByCondition(phone,sex,"good_reader")
+                    break;
+                case 'exportData':
+
+                    let data={
+                        "oncePass":"oncePass"
+                    }
+                    laytpl($('#exportData').html()).render(data,function(html){
+                        $('#exportData-container').html(html)
+                    })
+                    layer.open({
+                        skin: 'layui-layer-molv',
+                        type: 1,
+
+                        btn: ['确定','关闭'],
+                        title:'选择数据导出类型',
+                        content: $('#exportData-container'),
+                        success:function(){
+                            form.render()
+                        },
+                        yes: function(index, layero){
+                            let exportData = $("input[name = 'export']:checked").val();
+                            $.ajax({
+                                type:'get',
+                                url:'/comprehensiveController/exportReaderData',
+                                contentType:'application/json',
+                                success:function (res) {
+                                    console.log(res);
+                                    for (let i in res){
+                                        res[i].register_time=util.toDateString(res[i].register_time, "yyyy-MM-dd");
+                                    }
+                                    table.exportFile(['ID','用户名','密码','电话号码','性别','Email','注册时间','角色'],res, exportData); //默认导出 csv，也可以为：xls
+                                }
+                            });
+                            layer.close(index); //如果设定了yes回调，需进行手工关闭
+                        }
+                    });
+                    break;
+            };
+        })
+
+        //--------读者----根据条件查询---方法-------------------
+        function searchReaderByCondition(phone,sex,condition) {
+            table.reload('reader_table_overload',{
+                where:{
+                    "phone":phone,
+                    "gender":sex,
+                    "condition":condition
+                }
+            })
+        }
+
+
+    });
+</script>
+</body>
+</html>

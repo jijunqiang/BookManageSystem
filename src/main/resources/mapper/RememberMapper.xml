@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bysj.booksystem.dao.RememberMapper">
+
+
+    <insert id="insetRemember">
+       insert into remember_me(user_id,token,create_time,expires) values(#{rem.user_id},#{rem.token},#{rem.create_time},#{rem.expires})
+    </insert>
+
+
+    <delete id="deleteRememberMe">
+        delete from remember_me where user_id = #{user_id}
+    </delete>
+
+    <select id="selectRememberByToken" resultType="com.bysj.booksystem.model.RememberMe">
+        select * from remember_me where token = #{token}
+    </select>
+
+</mapper>

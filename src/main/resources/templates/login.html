@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+	<title>登录</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/layui/css/layui.css" th:href="@{/layui/css/layui.css}" media="all">
+    <link rel="stylesheet" href="../static/css/common.css" th:href= "@{/css/common.css}">
+	<link rel="shortcut icon" href="favicon.ico" th:href="@{favicon.ico}">
+    <style type="text/css">
+		#login-page:after {
+			content: '';
+			background: url("/img/backgrounds.jpg") no-repeat;
+			background-size: cover;
+			-webkit-filter: blur(3px);
+			-moz-filter: blur(3px);
+			-o-filter: blur(3px);
+			-ms-filter: blur(3px);
+			filter: blur(3px);
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: -1;
+		}
+		
+		.logo-title {
+			text-align: center;
+			letter-spacing: 2px;
+			padding: 14px 0;
+		}
+		
+		.logo-title h1{
+			color: #007DDB;
+			font-size: 32px;
+			font-weight: 400;
+		}
+		
+		#login-form {
+			margin-top: 180px;
+			background-color: #fff;
+			border: 1px solid #fff;
+			border-radius: 3px;
+			padding: 14px 20px;
+			box-shadow: 0 0 8px #eeeeee;
+		}
+		
+		#login-form .layui-form-item {
+			position: relative;
+		}
+		
+		#login-form .layui-form-item label {
+			position: absolute;
+			left: 1px;
+			top: 1px;
+			width: 38px;
+			line-height: 36px;
+			text-align: center;
+			color: #d2d2d2;
+		}
+		
+		#login-form .layui-form-item input {
+			padding-left: 36px;
+		}
+		#login-form .layui-form-item a{
+			float: right;
+			margin-top: 10px;
+		}
+		
+		#Captcha {
+			width: 60%;
+			display: inline-block;
+		}
+		
+		.captcha-img {
+			display: inline-block;
+			width: 34%;
+			float: right;
+		}
+		
+		.captcha-img canvas {
+			height: 34px;
+			border: 1px solid #e6e6e6;
+			height: 36px;
+			width: 100%;
+		}
+		#register:hover{
+			color: red;
+		}
+		#img {
+			width: 25px;
+			height: 20px;
+			position: absolute;
+			right: 5px;
+			margin-top: 9px;
+			top: 1px;
+			text-align: center;
+		}
+
+		
+    </style>
+</head>
+<body id="login-page"  >
+    <div class="layui-container">
+		<div class="layui-row layui-row-space10">
+			<div class="layui-col-xs2 layui-col-md4">
+				.
+			</div>
+			<div class="layui-col-xs8 layui-col-md4">
+				<div class="layui-form" id="login-form">
+<!--					<form class="layui-form" action="">-->
+					<div class="layui-form" action="">
+						<div class="layui-form-item logo-title">
+							<h1>用户登录</h1>
+						</div>
+						<div class="layui-form-item">
+							<label class="layui-icon layui-icon-username" for="phone"></label>
+							<input type="text" name="phone" id="phone" lay-verify="reqUser|account" placeholder="请输入手机号" autocomplete="off" class="layui-input" value="">
+						</div>
+						<div class="layui-form-item" >
+							<label class="layui-icon layui-icon-password" for="Password"></label>
+<!--							<input type="password" name="Password" id="Password" lay-verify="reqPass|password"-->
+<!--								   placeholder="请输入密码" -->
+<!--								   οnfοcus="this.placeholder=''"-->
+<!--								   οnblur="this.placeholder='密码'" -->
+<!--								   autocomplete="off" class="layui-input" value="">-->
+							<input type="password" name="Password" id="Password" lay-verify="reqPass|password"
+								   placeholder="请输入密码"
+								   autocomplete="off" class="layui-input" value="">
+							<img id="img" οnclick="hideShowPsw()" src="../img/eye.png">
+						</div>
+						<div class="layui-form-item">
+						    <label class="layui-icon layui-icon-vercode" for="Captcha"></label>
+							<input type="text" name="Captcha" id="Captcha" lay-verify="reqCap|captcha" placeholder="请输入验证码" autocomplete="off" class="layui-input verification" value="">
+							<div class="captcha-img">
+								<canvas id="captchaPic" width="120" height="40"></canvas>
+							</div>
+						</div>
+						<div class="layui-form-item" id="check">
+							<input type="checkbox" name="rememberMe" id="remember"  lay-skin="primary" title="记住密码(7天内有效)">
+							<a id="register" th:href="@{page/register}">立即注册</a>
+						</div>
+
+						<div class="layui-form-item">
+							<button class="layui-btn layui-btn-fluid" id="login" lay-submit lay-filter="form-login">登 录</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="layui-col-xs2 layui-col-md4">
+				.
+			</div>
+		</div>
+    </div>
+    <script src="../static/layui/layui.js" th:src="@{/layui/layui.js}"></script>
+    <script src="../static/js/common.js" th:src="@{/js/common.js}"></script>
+    <script type="text/javascript" src="../static/js/canvas.js" th:src="@{/js/canvas.js}"></script>
+    <script type="text/javascript" src="../static/js/jquery-3.1.1.min.js" th:src="@{/js/jquery-3.1.1.min.js}" ></script>
+    <script type="text/javascript">
+
+		// var remem=$('#check');
+		//
+		// console.log(remem)
+		// remem.click(function () {
+		// 	console.log(12345)
+		// })
+		// let checkbox =remember.val();
+		// remember.attr({"checked":true})
+		// console.log(typeof checkbox+'===='+checkbox)
+		if (top.location != window.location) {
+			top.location = window.location;
+		}
+		$(function () {
+			console.log(document.cookie+"--------------------")
+		})
+
+        layui.use(['jquery',  'layer','form'], function () {
+           // var $ = layui.jquery,'form',, 'ajaxmod', 'verifymod'
+			let form = layui.form
+             //   layer = layui.layer
+               // ajaxmod = layui.ajaxmod,
+				//verifymod = layui.verifymod;
+
+			let phone = $('#phone');
+			let password = $('#Password');
+			let captcha = $('#Captcha');
+			var remember=$('#check');
+			var flag="false";
+		//================验证码============================
+			let show_num = [];
+				draw(show_num);
+
+				$("#captchaPic").on('click',function(){
+					draw(show_num);
+				})
+		//===================改变记住密码的状态=================
+			remember.click(function () {
+			let r= $('#remember').prop('checked');
+			if (r){
+				flag="true";
+				console.log(flag)
+			}else {
+				flag="false";
+				console.log(flag)
+			}
+		})
+
+
+		//==================记住密码============================
+			let login_phone=getCookie("login_phone")
+			//console.log(remember.val())
+			if (login_phone != ""){
+				phone.val(login_phone)
+				flag="true";
+				$('#remember').attr({"checked":true})
+				form.render()
+			}
+
+			function getCookie(name){
+				let cookie = document.cookie;
+
+				if (cookie.length>0){
+					let arr=cookie.split(";")
+					for(let i=0;i<arr.length;i++){
+						let userName= arr[i].split("=");
+						if (userName[0] == name){
+							console.log(userName[0])
+							console.log(userName[1])
+							return userName[1];
+						}
+						console.log("--------------------"+i)
+					}
+				}
+				return ""
+			}
+
+			function setCookie(value){
+				let exp = new Date();
+				exp.setTime(exp.getTime() + 7*24*60*60*1000);
+				document.cookie="login_phone="+value+";expires=" + exp.toGMTString()+";path=/";
+			}
+		//=====================登录==========================================
+				$("#login").on('click',function() {
+					let val = $("#Captcha").val().toLowerCase();
+					let num = show_num.join("");
+
+					//console.log(typeof userName.val()+"==="+userName.val()+"****")
+					if (phone.val()=='' || password.val()=='' || captcha.val()==''){
+					form.verify({
+						reqUser: function (value, item) {
+							if (value == null || value == ''){
+								return "手机号不能为空";
+							}
+						},
+						reqPass: function (value, item) {
+							if (flag=="false"){
+								if (value == null || value == '') {
+									return "密码不能为空";
+								}
+							}
+						},
+						reqCap: function (value, item) {
+							if (flag=="false") {
+								if (value == null || value == '') {
+									return "验证码不能为空";
+								}
+							}
+						}
+					})
+						console.log(flag+"4")
+					}
+						let dataString={
+							"phone":phone.val(),
+							"password":password.val(),
+							"flag":flag
+						}
+						if(flag == "true"){
+							val = num;
+						}
+						if(num == val){
+							if (flag =="true") {
+								if (getCookie("login_phone") == null) {
+									setCookie(phone.val())
+								} else {
+									if (getCookie("login_phone") != phone) {
+										setCookie(phone.val())
+									}
+								}
+							}
+								$.ajax({
+									type:'get',
+									url:'/userController/login',
+									async: false,
+									data:dataString,
+									contentType:'application/json',
+									success:function (result) {
+										if (result != null) {
+											if (result == "0"){
+												alert("不存在该用户，请先注册！")
+											}else if (result == "-1"){
+												alert("登陆失败！账号或密码错误")
+											}else if (result == "1" || result == "main"){
+												location.href="/page/main"
+											}else if (result == "2" || result == "reader"){
+												location.href="/page/reader"
+											}else if (result == "请先登录"){
+												alert("请先登录")
+											}
+										}
+									},
+									error:function (err) {
+
+									}
+								})
+						}else {
+							if (flag == "false" && val !=''){
+							alert("验证码错误！请重新输入")
+							$("#Captcha").val('');
+							draw(show_num);
+							}
+						}
+
+					})
+
+			form.on('checkbox(filter)', function(data){
+				console.log(data.elem); //得到checkbox原始DOM对象
+				console.log(data.elem.checked); //是否被选中，true或者false
+				console.log(data.value); //复选框value值，也可以通过data.elem.value得到
+				console.log(data.othis); //得到美化后的DOM对象
+			});
+
+	//===============密码的可见与不可见=======================
+			$('#img').click(function () {
+				let demoImg = document.getElementById("img");
+				let PWD = document.getElementById("Password");
+				function hideShowPsw() {
+					if (PWD.type == "password") {
+						PWD.type = "text";
+						demoImg.src = "../img/close_eye.png"; //图片路径（闭眼图片）
+					} else {
+						PWD.type = "password";
+						demoImg.src = "../img/eye.png"; // 图片路径（睁眼图片）
+					}
+				}
+				hideShowPsw()
+			})
+
+
+		});
+
+
+    </script>
+</body>
+
+</html>

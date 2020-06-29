@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../layui/css/layui.css" th:href="@{/layui/css/layui.css}"/>
+    <link rel="stylesheet" href="../css/common.css" th:href="@{/css/common.css}" />
+    <style>
+        #container{
+            margin: 1% auto;
+            border: 1px solid #B2B2B2;
+            width: 40%;
+            height: 50%;
+            background-color: white;
+        }
+        #main{
+            margin: 10% 10%;
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <div class="layui-form " action="">
+        <div id="main" class="layui-form-pane">
+            <div class="layui-form-item ">
+                <label class="layui-form-label">书籍编号</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" id="bookNUm" required lay-verify="required" placeholder="请输入书籍编号" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item ">
+                <label class="layui-form-label">书名</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" id="bookName" required lay-verify="required" placeholder="请输入书名" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item ">
+                <label class="layui-form-label">作者</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" id="author" required lay-verify="required" placeholder="请输入作者" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">出版社</label>
+                <div class="layui-input-block">
+                    <input type="text" name="HandoverCompany" id="HandoverCompany" class="layui-input" style="position:absolute;z-index:2;width:90%;" placeholder="请选择或手动输入" lay-verify="required"  onkeyup="search()" autocomplete="off">
+                    <select type="text" id="hc_select" lay-filter="hc_select" autocomplete="off"  lay-verify="required" class="layui-select" lay-search>
+                        <option value=""></option>
+                        <option value="中华书局">中华书局</option>
+                        <option value="科学出版社">科学出版社</option>
+                        <option value="中国大百科全书出版社">中国大百科全书出版社</option>
+                        <option value="人民出版社">人民出版社</option>
+                        <option value="国家图书馆出版社">国家图书馆出版社</option>
+                        <option value="明天出版社">明天出版社</option>
+                        <option value="中国文学出版社">中国文学出版社</option>
+                        <option value="作家出版社">作家出版社</option>
+                        <option value="黄山书社">黄山书社</option>
+                        <option value="古籍书社">古籍书社</option>
+                    </select>
+                </div>
+            </div>
+
+<!--            出版日期-->
+            <div class="layui-form-item ">
+                <label class="layui-form-label">出版时间</label>
+                <div class="layui-input-block">
+                    <input type="text" lay-verify="required" class="layui-input" placeholder="请输入出版时间" id="test1">
+                </div>
+            </div>
+
+            <div class="layui-form-item " pane>
+                <label class="layui-form-label" style="line-height: 60px;">分类</label>
+                <div class="layui-input-block">
+                    <input type="checkbox" name="class-type" value="古典" title="古典">
+                    <input type="checkbox" name="class-type" value="小说" title="小说">
+                    <input type="checkbox" name="class-type" value="科学" title="科学">
+                    <input type="checkbox" name="class-type" value="历史" title="历史">
+                    <input type="checkbox" name="class-type" value="教材" title="教材">
+                    <input type="checkbox" name="class-type" value="儿童" title="儿童">
+                    <input type="checkbox" name="class-type" value="哲学" title="哲学">
+                    <input type="checkbox" name="class-type" value="法律" title="法律">
+                    <input type="checkbox" name="class-type" value="经济" title="经济">
+                    <input type="checkbox" name="class-type" value="体育" title="体育">
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text " >
+                <label class="layui-form-label ">简介</label>
+                <div class="layui-input-block">
+                    <textarea name="desc" id="desc" lay-verify="required" placeholder="请输入内容（200字以内）" class="layui-textarea"></textarea>
+                </div>
+            </div>
+            <div class="layui-form-item ">
+                <div class="layui-input-block">
+                    <button class="layui-btn" id="submit-btn" lay-submit lay-filter="formDemo">立即提交</button>
+                    <button type="reset" id="reset-btn" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../layui/layui.js" th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript" src="../layui/lay/modules/layedit.js" th:src="@{/layui/lay/modules/layedit.js}"></script>
+<script type="text/javascript" src="../layui/lay/modules/upload.js" th:src="@{/layui/lay/modules/upload.js}"></script>
+
+<script>
+
+    layui.use(['form', 'layedit','upload','jquery','laydate','layer'], function () {
+        var form = layui.form
+        var $=layui.jquery
+        var laydate = layui.laydate;
+        var layer = layui.layer;
+
+
+
+        //======既可手动输入，也能下拉选择的下拉选择框=================================
+        form.on('select(hc_select)', function (data) {
+            var select_text = data.elem[data.elem.selectedIndex].text;
+            $("#HandoverCompany").val(select_text );
+            $("#hc_select").next().find("dl").css({ "display": "none" });
+            form.render();
+        });
+
+        window.search = function () {
+            var value = $("#HandoverCompany").val();
+            $("#hc_select").val(value);
+            form.render();
+            $("#hc_select").next().find("dl").css({ "display": "block" });
+            var dl = $("#hc_select").next().find("dl").children();
+            var j = -1;
+            for (var i = 0; i < dl.length; i++) {
+                if (dl[i].innerHTML.indexOf(value) <= -1) {
+                    dl[i].style.display = "none";
+                    j++;
+                }
+                if (j == dl.length-1) {
+                    $("#hc_select").next().find("dl").css({ "display": "none" });
+                }
+            }
+        }
+
+
+
+
+
+        //==================出版日期==================================
+        laydate.render({
+            elem: '#test1' //指定元素
+        });
+
+        $('#submit-btn').click(function () {
+            let book_number = $('#bookNUm').val();
+            let book_name =$('#bookName').val();
+            let author = $('#author').val();
+            let publisher = $('#HandoverCompany').val();
+            let publish_time = $('#test1').val();
+            let introduce = $('#desc').val();
+
+            //获取书籍的分类类型
+            let obj = $("input[name='class-type']");
+            let check_val=[];
+            for (k in obj){
+                if (obj[k].checked){
+                    check_val.push(obj[k].value)
+                }
+            }
+            let classification='';
+            for(let i=0 ;i<check_val.length;i++){
+                if (i == (check_val.length-1)){
+                    classification += check_val[i];
+                }else {
+                    classification += check_val[i]+',';
+                }
+            }
+            if (book_number != '' && book_name != '' && author != '' && publisher != '' && publish_time != '' && introduce != ''){
+                if (classification === ''){
+                    layer.msg("请选择分类")
+                }else {
+                    let dataStr = {
+                        "book_number": book_number,
+                        "book_name": book_name ,
+                        "author": author,
+                        "publisher": publisher,
+                        "publish_time": publish_time,
+                        "introduce": introduce,
+                        "classification":classification,
+                        "state":1
+                    }
+                    $.ajax({
+                        type:'post',
+                        url:'/bookController/addBook',
+                        data:JSON.stringify(dataStr),
+                        async: false,
+                        contentType:'application/json',
+                        success:function (result) {
+                            if (result == '1'){
+                                layer.msg('这本书的编号已经存在');
+                            }else if (result == '0'){
+                                layer.msg('添加成功');
+                            }else {
+                                layer.msg('添加失败');
+                            }
+                        }
+                    })
+                }
+
+            }
+
+        })
+        
+        //重置
+        $('#reset-btn').click(function () {
+            $('#bookNUm').val('');
+            $('#bookName').val('');
+            $('#author').val('');
+            $('#HandoverCompany').val('');
+            $('#test1').val('');
+            $('#desc').val('');
+
+            $("input:checked").each(function (i) {
+                $(this).prop('checked',false)
+            });
+            form.render()
+
+
+        })
+        
+        //监听提交
+        // form.on('submit(formDemo)', function(data) {
+        //
+        //     layer.msg(JSON.stringify(data.field));
+        //     return false;
+        // });
+    });
+</script>
+
+</body>
+</html>

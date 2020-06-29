@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>后台首页</title>
+    <link rel="stylesheet" href="../layui/css/layui.css" th:href="@{/layui/css/layui.css}" />
+    <style>
+
+       tbody tr:nth-child(2n){
+            background-color:#f2f2f2 ;
+        }
+    </style>
+</head>
+<body>
+
+<!--<div style="background-color:#FFF9EC;flex: auto; padding: 20px;">-->
+<!--<span class="layui-breadcrumb">-->
+<!--  <a href="">首页</a>-->
+<!--  <a href="">国际新闻</a>-->
+<!--  <a href="">亚太地区</a>-->
+<!--  <a><cite>正文</cite></a>-->
+<!--</span>-->
+<!--<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">-->
+<!--    <legend>手机号查询</legend>-->
+<!--</fieldset>-->
+<!--<form th:action="@{/userController/getUserByPhone}">-->
+<!--<div style="display: flex">-->
+<!--    <input type="text" th:name="phone" style="width: 20%" name="title"  placeholder="请输入手机号(为空则全查)" autocomplete="off" class="layui-input">-->
+<!--        <button type="submit" class="layui-btn s-btn"><i class="layui-icon layui-icon-search"></i>搜索</button>-->
+<!--</div>-->
+<!--</form>-->
+<!--<table class="layui-table" id="tab">-->
+<!--    <colgroup>-->
+<!--        <col width="150">-->
+<!--        <col width="200">-->
+<!--        <col>-->
+<!--    </colgroup>-->
+<!--    <thead>-->
+<!--    <tr>-->
+<!--        <th>选择</th>-->
+<!--        <th>姓名</th>-->
+<!--        <th>手机号</th>-->
+<!--        <th>性别</th>-->
+<!--        <th>Email</th>-->
+<!--        <th>注册时间</th>-->
+<!--        <th>角色</th>-->
+<!--        <th th:if="${u.role == 'sup_admin'}">操作</th>-->
+<!--    </tr>-->
+<!--    </thead>-->
+<!--    <tbody id="dataContainer">-->
+<!--    <tbody>-->
+<!--    <tr th:each="user : ${userList}" >-->
+<!--&lt;!&ndash;        <th><input type="checkbox" th:text="${user.user_id}"/></th>  th:value="${user.user_id}"&ndash;&gt;-->
+<!--        <th th:text="${user.user_name}">姓名</th>-->
+<!--        <th th:text="${user.phone}">手机号</th>-->
+<!--        <th th:text="${user.gender}">性别</th>-->
+<!--        <th th:text="${user.email}">Email</th>-->
+<!--        <th th:text="${#dates.format(user.register_time,'yyyy-MM-dd')}">注册时间</th>-->
+<!--        <th th:text="${user.role}">角色</th>-->
+<!--        <th th:if="${u.role == 'sup_admin'}" th:switch="${user.role}">-->
+<!--            <a th:href="@{'/userController/updateRole?id='+${user.user_id}+'&role='+${user.role}}">-->
+<!--            <button th:case="reader" type="button"  class="layui-btn">-->
+<!--                <i class="layui-icon layui-icon-edit"></i>设为管理员-->
+<!--            </button>-->
+<!--            </a>-->
+
+<!--            <a th:href="@{'/userController/updateRole?id='+${user.user_id}+'&role='+${user.role}}">-->
+<!--            <button  th:case="admin" type="button"  class="layui-btn layui-btn-danger">-->
+<!--                <i class="layui-icon layui-icon-delete"></i> 撤销管理员-->
+<!--            </button>-->
+<!--            </a>-->
+<!--        </th>-->
+<!--    </tr>-->
+<!--    </tbody>-->
+<!--</table>-->
+
+
+
+<!--<div id="pages" style="display: flex;justify-content: center;"></div>-->
+<!--</div>-->
+
+
+<!--渲染表格-->
+<!--<table id="userListTemplate" lay-filter="user_list"></table>-->
+
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+        <legend>手机号查询</legend>
+    </fieldset>
+    <div style="display: flex">
+        <input type="text" id="phone" style="width: 20%" name="title"  placeholder="请输入手机号(为空则全查)" autocomplete="off" class="layui-input">
+            <button type="submit" id="search-phone" class="layui-btn s-btn"><i class="layui-icon layui-icon-search"></i>搜索</button>
+    </div>
+
+<table class="layui-table" id="userListTemplate"
+       lay-data="{
+        url:'/userController/getUserList',
+        width:1200,
+        even: true,
+        id:'user_table_reload',
+        page: {
+            layout: ['count', 'prev', 'page', 'next',  'skip'],
+            groups:3 ,
+            prev: '<<上一页',
+            next:'下一页>>'
+        },
+        limit:10
+       }"
+       lay-filter="user_list">
+    <thead>
+    <tr>
+        <th lay-data="{field:'user_id', width:80,hide:true, sort: true}">ID</th>
+        <th lay-data="{field: 'user_name', title: '用户名',width: 160, sort: true}">用户名</th>
+        <th lay-data="{field: 'phone', title: '手机号',width: 160, sort: true}">手机号</th>
+        <th lay-data="{field: 'gender', title: '性别',width: 120,sort: true}">性别</th>
+        <th lay-data="{field: 'email', title: 'Email', sort: true}">Email</th>
+        <th lay-data="{field: 'register_time',templet:function(d){return layui.util.toDateString(d.register_time, 'yyyy-MM-dd');}, title: '注册时间',width: 160, sort: true}">注册时间</th>
+        <th lay-data="{field: 'role', title: '角色',width: 160,sort: true}">角色</th>
+        <th th:if="${u.role == 'sup_admin'}" lay-data="{fixed: 'right', title: '操作', align:'center',width: 200, toolbar: '#barDemo'}">操作</th>
+    </tr>
+    </thead>
+</table>
+
+
+<!--行内操作-->
+<script type="text/html" id="barDemo">
+       {{# if ( d.role == 'reader' ) { }}
+       <a class="layui-btn layui-btn-sm" lay-event="setAdmin"><i class="layui-icon layui-icon-edit"></i>设为管理员</a>
+       {{# } }}
+       {{# if ( d.role == 'admin' ) { }}
+       <a class="layui-btn layui-btn-danger layui-btn-sm" lay-event="delAdmin"><i class="layui-icon layui-icon-delete"></i>撤销管理员</a>
+       {{# } }}
+</script>
+
+
+<script type="text/javascript" src="../layui/layui.js" th:src="@{/layui/layui.js}" ></script>
+<script type="text/javascript" src="../static/js/jquery-3.1.1.min.js" th:src="@{/js/jquery-3.1.1.min.js}" ></script>
+<script>
+
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作
+    layui.use(['element','laypage','laytpl','jquery','table','util'], function() {
+        var element = layui.element;
+        var laypage = layui.laypage;
+        var laytpl = layui.laytpl;
+        var $ = layui.jquery;
+        let table = layui.table;
+        let util = layui.util;
+
+        table.on('tool(user_list)', function(obj){
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的 DOM 对象（如果有的话）
+
+            if (layEvent === 'setAdmin'){
+                updateRole(data.user_id, data.role)
+            }else if (layEvent ==='delAdmin'){
+                updateRole(data.user_id, data.role)
+            }
+        })
+
+        //================根据手机号查询按钮===================
+        $('#search-phone').click(function () {
+            let phone = $('#phone').val();
+            table.reload('user_table_reload',{
+                url:'/userController/getUserByPhone',
+                where:{
+                    "phone":phone
+                }
+            })
+        })
+
+        //===========修改用户角色=============
+        function updateRole(user_id, role) {
+            $.ajax({
+                type:'get',
+                url:'/userController/updateRole',
+                async: false,
+                data:{
+                    "user_id":user_id,
+                    "role":role
+                 },
+                contentType:'application/json',
+                success:function (data) {
+                    if (data === '1'){
+                        table.reload('user_table_reload',{
+                        })
+                    }
+
+                }
+            })
+
+        }
+
+        // laypage.render({
+        //     elem: 'page',
+        //     //limit:3,
+        //     // ,count: 70 //数据总数，从服务端得到
+        //     // jump: function(obj, first){
+        //     //     //obj包含了当前分页的所有参数，比如：
+        //     //     console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+        //     //     console.log(obj.limit); //得到每页显示的条数
+        //     //
+        //     //     //首次不执行
+        //     //     if(!first){
+        //     //         //do something
+        //     //     }
+        //     // }
+        // });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //执行一个laypage实例
+        // laypage.render({
+        //     elem: 'pages' //注意，这里的 test1 是 ID，不用加 # 号
+        //     ,count: 50 //数据总数，从服务端得到
+        // });
+
+//var getTpl = demo.innerHTML,
+//	view = document.getElementById('view');
+//laytpl(getTpl).render(data, function(html) {
+//	view.innerHTML = html;
+//});
+
+        // var data=[1,2,3,4,5,6,]
+        // laytpl($('#trTemplate').html()).render(data,function(html){
+        //     $('#dataContainer').html(html)
+        // })
+
+    });
+
+</script>
+</body>
+</html>

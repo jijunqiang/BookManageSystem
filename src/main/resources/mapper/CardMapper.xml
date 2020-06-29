@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bysj.booksystem.dao.CardMapper">
+    <resultMap id="card" type="com.bysj.booksystem.model.LibraryCard">
+        <id column="card_number" property="card_number"></id>
+        <result column="user_id" property="user_id"></result>
+        <result column="effective" property="effective"></result>
+    </resultMap>
+
+    <insert id="insertCard">
+       insert into library_card (card_number,user_id,effective)values(#{libraryCard.card_number},#{libraryCard.user_id},#{libraryCard.effective})
+    </insert>
+
+    <select id="selectAll" resultMap="card">
+        select * from library_card limit #{index},#{limit}
+    </select>
+
+    <delete id="delCard">
+        delete from library_card where card_number =#{card_number}
+    </delete>
+
+    <select id="getCardByUserId" resultMap="card">
+        select * from library_card where user_id = #{user_id}
+    </select>
+
+    <select id="selectCards" resultMap="card">
+    select * from
+        (select * from library_card where user_id in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>) t limit #{index},#{limit}
+    </select>
+
+    <select id="selectCardsByNumber" resultMap="card">
+        select * from library_card where card_number = #{card_number};
+    </select>
+
+    <select id="getCardCount" resultType="integer">
+        select count(*) from library_card
+        <if test="id_list != null">
+         where user_id in
+                <foreach collection="id_list" item="user_id" open="(" separator="," close=")">
+                    #{user_id}
+                </foreach>
+        </if>
+    </select>
+
+</mapper>

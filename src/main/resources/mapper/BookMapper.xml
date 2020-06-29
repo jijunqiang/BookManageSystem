@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bysj.booksystem.dao.BookMapper">
+
+    <resultMap id="book_mapper" type="com.bysj.booksystem.model.Book">
+        <id column="book_id" property="book_id"></id>
+        <result column="book_number" property="book_number"></result>
+        <result column="book_name" property="book_name"></result>
+        <result column="author" property="author"></result>
+        <result column="publisher" property="publisher"></result>
+        <result column="publish_time" property="publish_time"></result>
+        <result column="classification" property="classification"></result>
+        <result column="state" property="state"></result>
+        <result column="introduce" property="introduce"></result>
+    </resultMap>
+    
+    <select id="selectBookByNum" resultMap="book_mapper">
+        select * from book where book_number = #{book_number};
+    </select>
+
+    <insert id="insetBook">
+         insert into book (book_number,book_name,author,publisher,publish_time,classification,state,introduce)
+          values
+         (#{book.book_number},#{book.book_name},#{book.author},#{book.publisher},#{book.publish_time},#{book.classification},#{book.state},#{book.introduce})
+    </insert>
+
+    <select id="selectAllBook" resultMap="book_mapper">
+        select * from book
+        <if test="index !=null and limit != null">
+            limit #{index},#{limit}
+        </if>
+    </select>
+
+    <update id="updateBook">
+       UPDATE book SET
+       <if test=" book.book_number != 'book_number'">
+       book_number=#{book.book_number},
+       </if>
+       book_name=#{book.book_name},author=#{book.author},publisher=#{book.publisher},publish_time=#{book.publish_time},classification=#{book.classification},state=#{book.state},introduce=#{book.introduce}
+        WHERE book_id = #{book.book_id}
+    </update>
+
+    <delete id="deleteBook">
+        delete from book where book_id in
+         <foreach collection="list" item="item_id" open="(" separator="," close=")">
+            #{item_id}
+        </foreach>
+    </delete>
+
+    <select id="selectBook" resultMap="book_mapper">
+    <if test="index != null and limit != null">
+        select * from(
+    </if>
+        select * from book where 1=1
+        <if test=" book.book_number != null and book.book_number !=''">
+            and book_number like concat('%',#{book.book_number},'%')
+        </if>
+        <if test="book.book_name != null and book.book_name !=''">
+            and book_name like concat('%',#{book.book_name},'%')
+        </if>
+        <if test="book.author != null and book.author !=''">
+           and author like concat('%',#{book.author},'%')
+        </if>
+        <if test="book.classification !=null and book.classification != ''">
+           and classification like concat('%',#{book.classification},'%')
+        </if>
+        <if test="book.publisher != null and book.publisher != '' ">
+            and publisher like concat('%',#{book.publisher},'%')
+        </if>
+        <if test=" book.state != null ">
+           and state = #{book.state}
+        </if>
+    <if test="index != null and limit != null">
+        ) t limit #{index},#{limit}
+    </if>
+
+    </select>
+
+    <update id="updateState" >
+        update book set state = 0 where book_number in
+        <foreach collection="list" item="book_number" open="(" separator="," close=")">
+            #{book_number}
+        </foreach>
+
+    </update>
+
+    <select id="selectBooksByIds" resultMap="book_mapper">
+        select * from book where book_id in
+        <foreach collection="bookIds" item="book_id" open="(" separator="," close=")">
+            #{book_id}
+        </foreach>
+    </select>
+
+    <select id="selectBooksByNumberList" resultMap="book_mapper">
+        select * from book where book_number in
+        <foreach collection="bookNumberList" item="book_number" open="(" separator="," close=")" >
+            #{book_number}
+        </foreach>
+     </select>
+
+    <select id="selectBookByBookName" resultMap="book_mapper">
+        select * from book where book_name like concat('%',#{book.book_name},'%')
+    </select>
+
+    <select id="selectBooksFromReader" resultMap="book_mapper">
+    <if test="index != null and  limit != null">
+        select * from (
+    </if>
+
+        <choose>
+        <when test="key_words != null and key_words != ''">
+        <choose>
+            <when test="condition == 'all'">
+            select * from (
+                select * from book where
+                book_number like concat('%',#{key_words},'%') or
+                book_name like concat('%',#{key_words},'%') or
+                author like concat('%',#{key_words},'%') or
+                publisher like concat('%',#{key_words},'%') or
+                classification like concat('%',#{key_words},'%')
+                ) t1 where state = 1
+            </when>
+            <otherwise>
+                select * from book where 1=1 and state = 1
+                <if test="condition == 'book_number'">
+                    and book_number like concat('%',#{key_words},'%')
+                </if>
+                <if test="condition == 'book_name'">
+                    and book_name like concat('%',#{key_words},'%')
+                </if>
+                <if test="condition == 'author'">
+                    and author like concat('%',#{key_words},'%')
+                </if>
+                <if test="condition == 'publisher'">
+                    and publisher like concat('%',#{key_words},'%')
+                </if>
+                <if test="condition == 'classification'">
+                    and classification like concat('%',#{key_words},'%')
+                </if>
+            </otherwise>
+        </choose>
+        </when>
+        <otherwise>
+            select * from book where 1=1 and state = 1
+        </otherwise>
+        </choose>
+        <if test="index != null and  limit != null">
+            ) t limit #{index},#{limit}
+        </if>
+    </select>
+
+    <update id="updateBookState">
+        update book set state = 1 where book_number in
+        <foreach collection="bookNumbers" item="book_number" open="(" separator="," close=")">
+            #{book_number}
+        </foreach>
+    </update>
+
+    <select id="getBookCount" resultType="Integer">
+        select count(*) from book where 1=1
+        <if test="book != null">
+            <if test=" book.book_number != null and book.book_number !=''">
+                and  book_number like concat('%',#{book.book_number},'%')
+            </if>
+            <if test="book.book_name != null and book.book_name !=''">
+                and book_name like concat('%',#{book.book_name},'%')
+            </if>
+            <if test="book.author != null and book.author !=''">
+                and author like concat('%',#{book.author},'%')
+            </if>
+            <if test="book.classification !=null and book.classification != ''">
+                and classification like concat('%',#{book.classification},'%')
+            </if>
+            <if test="book.publisher != null and book.publisher != '' ">
+                and publisher like concat('%',#{book.publisher},'%')
+            </if>
+            <if test=" book.state != null ">
+                and state = #{book.state}
+            </if>
+        </if>
+    </select>
+
+    <select id="getBooksByDistinct" resultMap="book_mapper">
+    <if test="index !=null and limit !=null">
+        select * from (
+    </if>
+        SELECT DISTINCT book_name FROM book where book_id in
+        <foreach collection="book_Ids" item="book_id" open="(" separator="," close=")">
+            #{book_id}
+        </foreach>
+        <if test="index !=null and limit !=null">
+            ) t limit #{index},#{limit}
+        </if>
+    </select>
+</mapper>

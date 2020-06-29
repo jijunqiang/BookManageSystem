@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../layui/css/layui.css" th:href="@{/layui/css/layui.css}" media="all">
+    <link rel="stylesheet" href="../css/common.css" th:href="@{/css/common.css}"/>
+    <style>
+        .label-text{
+            margin-left: -20px;
+        }
+    </style>
+</head>
+<body>
+    <!--搜索条件-->
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+        <legend>根据条件查询(全为空则全查)</legend>
+    </fieldset>
+    <div class="layui-form" action="">
+        <div class="layui-form-item layui-inline label-text">
+            <label class="layui-form-label " >编号:</label>
+            <div class="layui-input-block">
+                <input type="text" name="title" id="bookNumber"  lay-verify="title" autocomplete="off" placeholder="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline label-text">
+            <label class="layui-form-label ">书名:</label>
+            <div class="layui-input-block">
+                <input type="text" name="title" id="bookName" lay-verify="title" autocomplete="off" placeholder="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label ">作者:</label>
+            <div class="layui-input-block">
+                <input type="text" name="title" id="bookAuthor" lay-verify="title" autocomplete="off" placeholder="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline label-text">
+            <label class="layui-form-label ">出版社:</label>
+            <div class="layui-input-block">
+                <input type="text" name="title" id="publish" lay-verify="title" autocomplete="off" placeholder="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline label-text">
+            <label class="layui-form-label ">类型:</label>
+            <div class="layui-input-block">
+                <input type="text" name="title" id="classifi" lay-verify="title" autocomplete="off" placeholder="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">是否借出：</label>
+            <div class="layui-input-block">
+                <input type="radio" name="state" value="0" title="是">
+                <input type="radio" name="state" value="1" title="否" >
+            </div>
+        </div>
+        <div class="layui-form-item" style="text-align: center">
+            <div class="layui-input-block">
+                <button class="layui-btn" id="btn_submit" lay-submit lay-filter="formDemo"><i class="layui-icon layui-icon-search"></i>搜索</button>
+                <button type="reset" id="btn_reset" class="layui-btn layui-btn-primary"><i class="layui-icon layui-icon-refresh"></i>重置</button>
+            </div>
+        </div>
+    </div>
+    <!--数据表格-->
+    <table class="layui-hide" id="bookTemplate" lay-filter="book-Template" ></table>
+    <!--头部操作-->
+    <script type="text/html" id="book-title-barDemo">
+        <a class="layui-btn layui-btn-normal layui-btn-sm" lay-event="not-repeat-search"><i class="layui-icon layui-icon-read"></i>无重复查询</a>
+        <a class="layui-btn layui-btn-sm" lay-event="exportData"><i class="layui-icon layui-icon-export"></i>导出</a>
+    </script>
+
+
+    <!--导出格式选择弹窗-->
+    <script id="exportData" type="text/html">
+        <div class="layui-form" style="margin-left: -70px">
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <input type="radio" name="export" value="csv" title="csv" checked>
+                    <input type="radio" name="export" value="xls" title="xls">
+                </div>
+            </div>
+        </div>
+    </script>
+    <div id="exportData-container" style="display: none"></div>
+
+<script src="../layui/layui.js" th:src="@{/layui/layui.js}"></script>
+<script src="../js/common.js" th:src="@{/js/common.js}"></script>
+
+<script>
+layui.use(['element','table','util','jquery','form','laytpl'], function() {
+    var element = layui.element;
+    let table = layui.table;
+    let util = layui.util;
+    let $ = layui.jquery;
+    let form = layui.form;
+    let laytpl = layui.laytpl;
+
+    let data_book_id = '';
+
+    table.render({
+        elem: '#bookTemplate', //容器id
+        even: true, //隔行变色
+        id: 'book_table_overload',
+        toolbar: "#book-title-barDemo",
+        defaultToolbar: [],//隐藏表格右上角工具
+        url: '/bookController/allBook', //数据接口
+        cols: [
+            [
+                {checkbox: true, fixed: true, LAY_CHECKED: true, hide: true},
+                {field: 'book_id', title: '图书id', hide: true, sort: true},
+                {field: 'book_number', title: '图书编号', width: 160, sort: true},
+                {field: 'book_name', title: '书名', width: 160},
+                {field: 'author', title: '作者', width: 160, sort: true},
+                {field: 'publisher', title: '出版社', width: 160},
+                {
+                    field: 'publish_time', title: '出版时间', templet: function (d) {
+                        return util.toDateString(d.publish_time, "yyyy-MM-dd");
+                    }, width: 160
+                },
+                {field: 'classification', title: '分类', width: 160, sort: true},
+                {
+                    field: 'state', title: '状态',
+                    templet: function (d) {
+                        if (d.state === 0) {
+                            return "借出"
+                        } else {
+                            return "未借出";
+                        }
+                    },
+                    sort: true,
+                    width: 80
+                },
+                {field: 'introduce', title: '简介'},
+            ]
+        ],
+        page: {
+            layout: ['count', 'prev', 'page', 'next',  'skip'],
+            groups:3 ,
+            prev: '<<上一页',
+            next:'下一页>>'
+        },
+        limit:10,
+        // done: function (res) {
+        //     data_book_id = '';
+        //     let data = res.data;
+        //     for (i in data) {
+        //         if (i == (data.length - 1)) {
+        //             data_book_id += data[i].book_id;
+        //         } else {
+        //             data_book_id += data[i].book_id + ",";
+        //         }
+        //     }
+        // }
+    });
+
+    //-----------查询按钮---------------------
+    $('#btn_submit').click(function () {
+        let state;
+        if ($("input[name='state']:checked").val() === undefined) {
+            state = null;
+        } else {
+            if ($("input[name='state']:checked").val() === "0") {
+                state = 0;
+            } else if ($("input[name='state']:checked").val() === "1") {
+                state = 1;
+            }
+        }
+        let dataStr = {
+            "book_number": $('#bookNumber').val(),
+            "book_name": $('#bookName').val(),
+            "author": $('#bookAuthor').val(),
+            "classification": $('#classifi').val(),
+            "publisher": $('#publish').val(),
+            "state": state
+        };
+        $.ajax({
+            type: 'get',
+            url: '/bookController/getBooks',
+            contentType: 'application/json',
+            data: dataStr,
+            success:function (data) {
+                data_book_id = '';
+                for (i in data) {
+                    if (i == (data.length - 1)) {
+                        data_book_id += data[i].book_id;
+                    } else {
+                        data_book_id += data[i].book_id + ",";
+                    }
+                }
+
+
+            }
+        })
+        table.reload('book_table_overload', {
+            url: '/bookController/selectBook',
+            where: dataStr,
+        })
+
+    })
+
+    //-------------重置按钮-------------------
+    $('#btn_reset').click(function () {
+        $('#bookNumber').val(''),
+            $('#bookName').val(''),
+            $('#bookAuthor').val(''),
+            $('#classifi').val(''),
+            $('#publish').val(''),
+            $("input[name='state']").each(function (i) {
+                $(this).prop('checked', false)
+            });
+        form.render()
+    })
+
+    //--------------监听头部工具----------------
+    table.on('toolbar(book-Template)', function (obj) {
+        var checkStatus = table.checkStatus(obj.config.id);
+        switch (obj.event) {
+            case 'not-repeat-search':
+                let bookIds = data_book_id;
+                console.log("bookIds:" + bookIds)
+
+                table.render({
+                    elem: '#bookTemplate', //容器id
+                    even: true, //隔行变色
+                    where: {
+                        "bookIds": bookIds
+                    },
+                    toolbar: "#book-title-barDemo",
+                    defaultToolbar: [],//隐藏表格右上角工具
+                    url: '/comprehensiveController/getBooksByCondition', //数据接口
+                    cols: [
+                        [
+                            {field: 'book_name', title: '书名', width: 160},
+                            {field: 'author', title: '作者', width: 160, sort: true},
+                            {field: 'publisher', title: '出版社', width: 160},
+                            {
+                                field: 'publish_time', title: '出版时间', templet: function (d) {
+                                    return util.toDateString(d.publish_time, "yyyy-MM-dd");
+                                }, width: 160
+                            },
+                            {field: 'classification', title: '分类', width: 160, sort: true},
+                            {
+                                field: 'totalCount', title: '总数量', width: 100,
+                                templet: function (d) {
+                                    if (d.totalCount === null) {
+                                        return 0;
+                                    } else {
+                                        return d.totalCount;
+                                    }
+                                }
+
+                            },
+                            {
+                                field: 'borrowCount', title: '借出', width: 100,
+                                templet: function (d) {
+                                    if (d.borrowCount === null) {
+                                        return 0;
+                                    } else {
+                                        return d.borrowCount;
+                                    }
+                                }
+
+                            },
+                            {
+                                field: 'notBorrowCount', title: '剩余', width: 100,
+                                templet: function (d) {
+                                    if (d.notBorrowCount === null) {
+                                        return 0;
+                                    } else {
+                                        return d.notBorrowCount;
+                                    }
+                                }
+
+                            },
+                            {field: 'introduce', title: '简介'},
+                        ]
+                    ],
+                    page: {
+                        layout: ['count', 'prev', 'page', 'next',  'skip'],
+                        groups:3 ,
+                        prev: '<<上一页',
+                        next:'下一页>>'
+                    },
+                    limit:10
+                });
+                break;
+            case 'exportData':
+
+                let data={
+                    "oncePass":"oncePass"
+                }
+                laytpl($('#exportData').html()).render(data,function(html){
+                    $('#exportData-container').html(html)
+                })
+                layer.open({
+                    skin: 'layui-layer-molv',
+                    type: 1,
+
+                    btn: ['确定','关闭'],
+                    title:'选择数据导出类型',
+                    content: $('#exportData-container'),
+                    success:function(){
+                        form.render()
+                    },
+                    yes: function(index, layero){
+                        let exportData = $("input[name = 'export']:checked").val();
+                        $.ajax({
+                            type:'get',
+                            url:'/comprehensiveController/exportBookData',
+                            contentType:'application/json',
+                            success:function (res) {
+                                if (res[0].book_id != undefined && res[0].book_id != null){
+                                    for (let i in res){
+                                        res[i].publish_time=util.toDateString(res[i].publish_time, "yyyy-MM-dd");
+                                        let state = res[i].state;
+                                        if (state == null || state == ''){
+                                            res[i].state = '借出';
+                                        }else {
+                                            res[i].state = '未借出';
+                                        }
+                                    }
+                                    table.exportFile(['ID','图书编号','书名','作者','出版社','出版时间','分类','是否借出','简介'],res, exportData); //默认导出 csv，也可以为：xls
+                                }else {
+                                    for (let i in res){
+                                        res[i].publish_time=util.toDateString(res[i].publish_time, "yyyy-MM-dd");
+                                        if (res[i].totalCount == null || res[i].totalCount == ''){
+                                            res[i].totalCount = '0';
+                                        }
+                                        if (res[i].borrowCount == null || res[i].borrowCount == ''){
+                                            res[i].borrowCount = '0';
+                                        }
+                                        if (res[i].notBorrowCount == null || res[i].notBorrowCount == ''){
+                                            res[i].notBorrowCount = '0';
+                                        }
+                                    }
+                                    table.exportFile(['书名','作者','出版社','出版时间','分类','简介','共有','借出','剩余'],res, exportData); //默认导出 csv，也可以为：xls
+                                }
+                            }
+                        })
+                        layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    }
+                });
+                break;
+        }
+        ;
+    });
+
+    //----------合计行转换成整数---------------------
+    // function fnSetNoDouble(d) {
+    //     setTimeout(function () {
+    //         fnGetTotalDiv(d);//删除数据所在列
+    //     }, 100);
+    // };
+    //
+    // //删除合计行的小数点
+    // function fnGetTotalDiv(id) {
+    //     var div = '.layui-table-total div:eq(' + id + ')';
+    //     var a = $(div).html();
+    //     // 进行剪切
+    //     a = a.substr(0, a.indexOf("."));
+    //     $(div).html(a);
+    // };
+});
+</script>
+</body>
+</html>

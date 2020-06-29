@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../layui/css/layui.css" th:href="@{/layui/css/layui.css}" media="all">
+    <link rel="stylesheet" href="../css/common.css" th:href="@{/css/common.css}"/>
+</head>
+<body>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend>根据条件查询</legend>
+</fieldset>
+
+<div class="layui-form" action="">
+    <div class="layui-form-item layui-inline label-text">
+        <label class="layui-form-label " >手机号:</label>
+        <div class="layui-input-block">
+            <input type="text" name="title" id="phone"  lay-verify="title" autocomplete="off" placeholder="" class="layui-input">
+        </div>
+    </div>
+<!--    <div class="layui-form-item layui-inline label-text">-->
+<!--        <label class="layui-form-label ">书名:</label>-->
+<!--        <div class="layui-input-block">-->
+<!--            <input type="text" name="title" id="bookName" lay-verify="title" autocomplete="off" placeholder="" class="layui-input">-->
+<!--        </div>-->
+<!--    </div>-->
+
+    <div class="layui-form-item layui-inline" >
+    <div class="layui-input-block">
+<!--        <button class="layui-btn" id="btn_search" lay-submit lay-filter="formDemo"><i class="layui-icon layui-icon-search"></i>搜索</button>-->
+        <button type="reset" id="btn_reset" class="layui-btn layui-btn-primary"><i class="layui-icon layui-icon-refresh"></i>重置</button>
+    </div>
+</div>
+</div>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend>数据展示</legend>
+</fieldset>
+
+<!--layui渲染表格开始-->
+
+<!--数据表格-->
+<table class="layui-hide" id="dataTemplate" lay-filter="dataTemplate" ></table>
+<!--行内操作-->
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-warm layui-btn-sm" lay-event="book-detail"><i class="layui-icon layui-icon-read"></i>书籍详情</a>
+    <a class="layui-btn  layui-btn-sm" lay-event="user-detail"><i class="layui-icon layui-icon-user"></i>读者详情</a>
+</script>
+
+<!--头部操作-->
+<script type="text/html" id="title-barDemo">
+    <a class="layui-btn  layui-btn-sm" lay-event="searchAll"><i class="layui-icon layui-icon-search"></i>全查</a>
+    <a class="layui-btn layui-btn-normal layui-btn-sm" lay-event="returned"><i class="layui-icon layui-icon-face-smile"></i>已归还</a>
+    <a class="layui-btn layui-btn-primary layui-btn-sm" lay-event="not-return"><i class="layui-icon layui-icon-face-cry"></i>未归还</a>
+    <a class="layui-btn layui-btn-danger layui-btn-sm" lay-event="overdue-not-return"><i class="layui-icon layui-icon-close-fill"></i>逾期未归还</a>
+</script>
+<!--layui渲染表格结束-->
+
+
+<!--书籍信息弹窗-->
+<script id="book-info" type="text/html">
+    <div class="layui-form layui-form-pane" >
+        <div class="layui-form-item">
+            <label class="layui-form-label">图书编号</label>
+            <div class="layui-input-block">
+                <input type="text" readonly id="book_number" value="{{d.book_number}}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">书名</label>
+            <div class="layui-input-block">
+                <input type="text" readonly id="book_name" value="{{d.book_name}}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">作者</label>
+            <div class="layui-input-block">
+                <input type="text" readonly id="author" value="{{d.author}}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">出版社</label>
+            <div class="layui-input-block">
+                <input type="text" readonly id="publisher"  value="{{d.publisher}}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">出版时间</label>
+            <div class="layui-input-block">
+                <input type="text" readonly  id="publish_time"  value="{{d.publish_time}}"  class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">分类</label>
+            <div class="layui-input-block">
+                <input type="text" readonly id="classification" value="{{d.classification}}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="text" readonly id="state"  value="{{d.state}}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item" >
+            <label class="layui-form-label ">简介</label>
+            <div class="layui-input-block">
+                <textarea type="text" readonly id="introduce" style="height: 200px;" class="layui-textarea">{{d.introduce}}</textarea>
+            </div>
+        </div>
+    </div>
+</script>
+<div id="book-info-model" style="display: none"></div>
+
+
+<!--    个人信息弹窗-->
+<script id="user-info" type="text/html">
+    <div class="layui-form layui-form-pane" >
+        <div class="layui-form-item">
+            <label class="layui-form-label">姓名</label>
+            <div class="layui-input-block">
+                <input type="text" readOnly="true" value="{{d.user_name}}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">手机号</label>
+            <div class="layui-input-block">
+                <input type="text" readOnly="true" value="{{d.phone}}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">性别</label>
+            <div class="layui-input-block">
+                <input type="text" readOnly="true" value="{{d.gender}}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">Email</label>
+            <div class="layui-input-block">
+                <input type="text" readOnly="true" value="{{d.email}}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">注册日期</label>
+            <div class="layui-input-block">
+                <input type="text"  readOnly="true" value="{{d.register_time}}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色</label>
+            <div class="layui-input-block">
+                <input type="text"  readOnly="true" value="{{d.role}}" class="layui-input">
+            </div>
+        </div>
+    </div>
+</script>
+<div id="user-info-model" style="display: none"></div>
+
+
+<script src="../layui/layui.js" th:src="@{/layui/layui.js}"></script>
+<script>
+
+    layui.use(['table','jquery','util','laytpl','laydate'],function () {
+        let table = layui.table;
+        let $ = layui.jquery;
+        let util = layui.util;
+        let laytpl = layui.laytpl;
+        var laydate = layui.laydate;
+
+
+        table.render({
+            elem: '#dataTemplate', //容器id
+            // height: 312, //容器高度
+            even: true, //隔行变色
+            id:'table_overload',
+            toolbar:"#title-barDemo",
+            defaultToolbar: [],//隐藏表格右上角工具
+            url: '/borrowController/getAllRecords', //数据接口
+            cols:[
+                    [
+                        {field: 'record_id', title: '借阅记录id',hide:true, sort: true},
+                        {field: 'user_id', title: '用户id',width: 160, sort: true},
+                        {field: 'book_number', title: '图书编号',width: 160},
+                        {field: 'out_date', title: '借出时间',templet:function(d){return util.toDateString(d.out_date, "yyyy-MM-dd");}, width: 160,sort: true},
+                        {field: 'effective_time', title: '借出时长',width: 160},
+                        {field: 'return_state', title: '是否归还',width: 160},
+                        {field: 'return_date', title: '归还时间',templet:function(d){return d.return_date ? util.toDateString(d.return_date, "yyyy-MM-dd"):"";},width: 160, sort: true},
+                        {field: 'continue_num', title: '续借次数', sort: true,width: 120},
+                        {field: 'continue_date', title: '续借日期',templet:function(d){return d.continue_date ? util.toDateString(d.continue_date, "yyyy-MM-dd"):"";}, sort: true,width: 160},
+                        {field: 'isOverdue',title:'是否逾期',
+                            templet:function(d) {
+                                if (d.continue_date != '' && d.continue_date != null){
+                                    //如果续借了，则用续借日期
+                                    let nowData = new Date();
+                                    //首先将续借日期往后推移30天
+                                    let result=geNewtDate(d.continue_date)
+                                    return result>nowData ? '否':'是'
+                                }else {
+                                    //如果没续借，则用借出日期
+                                    let nowData = new Date();
+                                    //首先将续借日期往后推移30天
+                                    let result=geNewtDate(d.out_date)
+                                    return result>nowData ? '否':'是'
+                                }
+                            }
+                        },
+                        {fixed: 'right', title: '操作', align:'center',width: 300, toolbar: '#barDemo'}
+                    ]
+                ],
+            page: {
+                layout: ['count', 'prev', 'page', 'next',  'skip'],
+                groups:3 ,
+                prev: '<<上一页',
+                next:'下一页>>'
+            },
+            limit:10
+        })
+
+        //================监听行工具====================
+        table.on('tool(dataTemplate)',function (obj) {
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的 DOM 对象（如果有的话）
+
+            if (layEvent === 'book-detail'){
+                book_info_Tool(data.book_number)
+            }else if (layEvent === 'user-detail'){
+                user_info_Tool(data.user_id)
+            }
+        })
+
+        //================监听头工具====================
+        table.on('toolbar(dataTemplate)', function(obj) {
+            var checkStatus = table.checkStatus(obj.config.id);
+            switch(obj.event){
+                //全查
+                case 'searchAll':
+                    getDataByCondition($('#phone').val(),null)
+                    break;
+                //已归还
+                case 'returned':
+                        getDataByCondition($('#phone').val(),"1");
+                    break;
+                //未归还
+                case 'not-return':
+                        getDataByCondition($('#phone').val(),"0");
+                    break;
+                //逾期未归还
+                case 'overdue-not-return':
+                        getDataByCondition($('#phone').val(),"-1");
+            };
+        })
+        
+        //==============搜索按钮======================
+        // $('#btn_search').click(function () {
+        //     let phone = $('#phone').val();
+        //     if (phone === ''|| phone === null){
+        //         layer.msg("请输入手机号！")
+        //     }else {
+        //         getDataByCondition(phone,null)
+        //     }
+        //
+        // })
+        //==============重置按钮======================
+        $('#btn_reset').click(function () {
+            $('#phone').val('');
+             $('#bookName').val('');
+        })
+        
+        //================按条件搜索方法===============
+        function getDataByCondition(phone,data) {
+            table.reload('table_overload',{
+                url:'/borrowController/getRecordsByCondition',
+                where:{
+                    "phone":phone,
+                    "condition":data
+                }
+            })
+
+        }
+        
+        //==============书籍详情方法====================
+        function book_info_Tool(data) {
+            $.ajax({
+                type:'get',
+                url:'/bookController/getBookByNumber',
+                data:{
+                    "book_number":data
+                },
+                async: false,
+                contentType:'application/json',
+                success:function (result) {
+                    let state = result.state;
+                    if (state === 0){
+                        result.state = '借出';
+                    }else if (result.state ===1){
+                        result.state = '未借出'
+                    }
+                    laytpl($('#book-info').html()).render(result,function(html){
+                        $('#book-info-model').html(html)
+                    })
+                    layer.open({
+                        skin: 'layui-layer-molv',
+                        type: 1,
+                        area: ['500px', '700px'],
+                        btn: ['关闭'],
+                        title:'书籍预览',
+                        content: $('#book-info-model'),
+                        success:function(){
+                            laydate.render({
+                                elem: '#publish_time', //指定元素data.publish_time
+                                value:util.toDateString(result.publish_time, "yyyy-MM-dd")
+                            });
+
+                        },
+
+                    });
+                }
+            })
+        }
+
+        //==============读者详情方法====================
+        function user_info_Tool(d){
+            $.ajax({
+                type:'get',
+                url:'/userController/getUserById',
+                data:{
+                    "user_id":d
+                },
+                contentType:'application/json',
+                success:function(data){
+
+                    //获取日期
+                    let datum = data['register_time'];
+                    //格式化日期
+                    function frm_time(d) {
+                        return util.toDateString(d, "yyyy-MM-dd");
+                    }
+                    data['register_time']=frm_time(datum)
+
+                    laytpl($('#user-info').html()).render(data,function(html){
+                        $('#user-info-model').html(html)
+                    })
+                    layer.open({
+                        skin: 'layui-layer-molv',
+                        type: 1,
+                        area: ['400px', '500px'],
+                        btn: ['关闭'],
+                        title:'读者详情',
+                        content: $('#user-info-model')
+                    });
+                }
+            })
+        }
+
+        //==============得到30天之后的日期===================
+        function geNewtDate(d) {
+            var date= new Date(Date.parse(d))
+            var iToDay=date.getDate();
+            var iToMon=date.getMonth();
+            var iToYear=date.getFullYear();
+            var result = new Date(iToYear,iToMon,(iToDay+30));
+            return result;
+        }
+
+    })
+</script>
+</body>
+</html>

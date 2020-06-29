@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="../layui/css/layui.css" th:href="@{/layui/css/layui.css}" media="all">
+    <link rel="stylesheet" href="../css/common.css" th:href="@{/css/common.css}"/>
+    <style type="text/css">
+        .public-part{
+            margin-left: 5%;
+        }
+    </style>
+</head>
+<body style="background-color: #fff9ec;">
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend>图书证编号</legend>
+</fieldset>
+
+<div class="layui-form layui-form-pane public-part" id="userInfo">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">图书证编号</label>
+            <div class="layui-input-inline">
+                <input type="text" name="number" id="number" placeholder="请输入图书证编号" autocomplete="off" class="layui-input" style="width: 300px;">
+            </div>
+            <button class="layui-btn" id="borrow" style="margin-left: 150px;">确定借书</button>
+        </div>
+    </div>
+</div>
+
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px; ">
+    <legend>图书编号</legend>
+</fieldset>
+
+<div >
+    <div class="layui-form layui-form-pane public-part bookNum-public-part">
+        <div class="layui-form-item" >
+            <div class="layui-inline">
+                <label class="layui-form-label">图书编号</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="book-number" placeholder="请输入图书编号" autocomplete="off" class="layui-input" style="width: 300px;">
+                </div>
+                <button class="layui-btn" id="addInput" style="margin-left: 150px;"><i class="layui-icon layui-icon-addition"></i>添加输入框</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="../layui/layui.js" th:src="@{/layui/layui.js}"></script>
+<script src="../js/common.js" th:src="@{/js/common.js}"></script>
+
+<script>
+
+    layui.use(['jquery','layer','util'],function(){
+        var $=layui.jquery
+        let layer = layui.layer;
+        let util = layui.util;
+
+        let userId;
+
+        //============添加文本框=========================
+        $('#addInput').click(function(){
+            var inputData=$("[name = 'book-number']")
+            if(inputData.length < 4){
+                var html = "";
+                html += '<div class="layui-form-item " >'
+                html +='<div class="layui-inline">'
+                html += '<label class="layui-form-label">图书编号</label>'
+                html += '<div class="layui-input-inline">'
+                html += '<input type="text" name="book-number" placeholder="请输入图书编号" autocomplete="off" class="layui-input" style="width: 300px;">'
+                html += '</div>'
+                html += '<i class="layui-icon layui-icon-subtraction" id="delImg"  style="margin-left: 150px;line-height: 38px;font-size:40px"></i>'
+                html += '</div>'
+                html += '</div>'
+
+                $('.bookNum-public-part').append(html);
+            }else{
+                layer.msg("每人一次最多只能借阅4本书")
+            }
+
+        })
+
+
+        //==============删除文本框=====================
+        $(document).on("click","#delImg",function(){
+
+            $(this).parent().parent().remove()
+        })
+
+
+        //==============删除生成的div=====================
+        $('#number').blur(function () {
+            $('.label-text').remove()
+        })
+        //============失去焦点回显用户基本信息==============
+        function hui_xian(){
+        $('#number').blur(function () {
+
+            let card_number = $('#number').val();
+            if (card_number != null && card_number != ''){
+            let dataStr = {
+                "card_number":card_number,
+            }
+            $.ajax({
+                type:'get',
+                url:'/libraryCard/getUserInfo',
+                data:dataStr,
+                async: false,
+                contentType:'application/json',
+                success:function (result) {
+                    if (result != null && result != ''){
+                        userId = result.user_id;
+                        var items=['user_name','phone','gender','email','register_time','role']
+                        for(let i = 0 ; i<items.length ;i++){
+                            let r;
+                            if (items[i] === 'register_time'){
+                                 r =  util.toDateString(result[items[i]], "yyyy-MM-dd");
+                            }else {
+                                ;r=  result[items[i]];
+                            }
+                            var html = '';
+                            html +='<div class="layui-form-item  label-text">'
+                            html +='<label class="layui-form-label" >'+items[i]+'</label>'
+                            html +='<div class="layui-input-block">'
+                            html +='<input type="text" name="title" readonly value="'+r+'" style="width: 300px;" class="layui-input">'
+                            html +='</div>'
+                            html +='</div>'
+
+                            $('#userInfo').append(html)
+                        }
+                    }else {
+                        layer.msg("请先办理图书证")
+                    }
+                }
+              })
+            }
+        })
+      }
+        hui_xian()
+
+
+        //===============借阅书籍=====================
+        $('#borrow').click(function () {
+            let card_number = $('#number').val();
+            if (card_number === null || card_number === ''){
+                layer.msg("请输入图书证编号")
+            }else {
+               let book_number = getBookNumber();
+               if (book_number === null || book_number === ''){
+                   layer.msg("请输入图书编号")
+               }else {
+                   let dataStr = {
+                       "card_number":card_number,
+                       "book_number":book_number
+                   }
+
+                   $.ajax({
+                       type:'get',
+                       url:'/borrowController/hasOverdue',
+                       data:{
+                           "user_id":userId
+                       },
+                       async: false,
+                       contentType:'application/json',
+                       success:function (res) {
+                           if (res === "-1"){
+                               layer.alert('你有逾期未归还图书，请先归还在借书', {
+                                   skin: 'layui-layer-molv',
+                                   closeBtn: 0
+                               })
+                           }else {
+                               $.ajax({
+                                   type:'get',
+                                   url:'/borrowController/borrowBook',
+                                   data:dataStr,
+                                   async: false,
+                                   contentType:'application/json',
+                                   success:function (result) {
+                                       layer.msg(result)
+                                   }
+
+                               })
+                           }
+                       }
+
+                   })
+
+               }
+            }
+        })
+
+        //==============获取图书编号====================
+        function getBookNumber() {
+            var inputData=$("[name = 'book-number']");
+            var a = '';
+            for(let i = 0 ;i<inputData.length;i++){
+                if(i == (inputData.length-1)){
+                    a +=inputData[i].value;
+                }else{
+                    a +=inputData[i].value+','
+                }
+
+            }
+            return a;
+        }
+
+    })
+</script>
+</body>
+</html>

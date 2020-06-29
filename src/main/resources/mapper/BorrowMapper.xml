@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bysj.booksystem.dao.BorrowMapper">
+    <resultMap id="borrow" type="com.bysj.booksystem.model.BorrowRecords">
+        <id column="record_id" property="record_id"></id>
+        <result column="user_id" property="user_id"></result>
+        <result column="book_number" property="book_number"></result>
+        <result column="out_date" property="out_date"></result>
+        <result column="effective_time" property="effective_time"></result>
+        <result column="return_state" property="return_state"></result>
+        <result column="return_date" property="return_date"></result>
+        <result column="continue_num" property="continue_num"></result>
+        <result column="continue_date" property="continue_date"></result>
+    </resultMap>
+
+    <insert id="insertBorrowRecords">
+        insert into borrowing_records
+         (user_id,book_number,out_date,effective_time,return_state,return_date,continue_num,continue_date)
+        values
+        <foreach collection="list" item="borrowRecords"  separator=",">
+            (#{borrowRecords.user_id},#{borrowRecords.book_number},#{borrowRecords.out_date},#{borrowRecords.effective_time},#{borrowRecords.return_state},#{borrowRecords.return_date},#{borrowRecords.continue_num},#{borrowRecords.continue_date})
+        </foreach>
+    </insert>
+
+    <select id="getRecordsByUserId" resultMap="borrow">
+        select * from borrowing_records where user_id = #{user_id} and return_state = '未归还'
+        <if test="array != null">
+            and book_number in
+            <foreach collection="array" item="book_number" open=" (" separator="," close=")">
+                #{book_number}
+            </foreach>
+        </if>
+
+    </select>
+
+    <update id="renew">
+        update borrowing_records set continue_num = continue_num-1, continue_date = #{renewDate} where user_id = #{user_id} and book_number in
+        <foreach collection="array" item="book_number" open="(" separator="," close=")">
+            #{book_number}
+        </foreach>
+    </update>
+
+    <update id="returnBook">
+        update borrowing_records set return_state = '已归还', return_date = #{returnDate} where user_id = #{user_id} and book_number in
+        <foreach collection="array" item="book_number" open="(" separator="," close=")">
+            #{book_number}
+        </foreach>
+    </update>
+
+    <select id="selectAllRecords" resultMap="borrow">
+        select * from borrowing_records
+        <if test="index != null and limit != null">
+            limit #{index},#{limit};
+        </if>
+
+    </select>
+
+    <select id="selectRecordsByUserIdList" resultMap="borrow">
+         <if test="index != null and limit != null">
+             select * from(
+         </if>
+             select * from borrowing_records where 1=1
+                 <if test="user_ids != null and user_ids.size >0">
+                    and user_id in
+                    <foreach collection="user_ids" item="user_id" open="(" separator="," close=")">
+                        #{user_id}
+                    </foreach>
+                 </if>
+
+                 <if test="condition == '1'.toString()">
+                     and return_state = '已归还'
+                 </if>
+
+                <if test="condition == '0'.toString()">
+                    and return_state = '未归还'
+                </if>
+         <if test="index != null and limit != null">
+             ) t limit #{index},#{limit}
+         </if>
+
+
+    </select>
+
+    <select id="queryRecordsByUserIds" resultMap="borrow">
+        select * from borrowing_records where user_id in
+        <foreach collection="ids" item="user_id" open="(" separator="," close=")">
+            #{user_id}
+        </foreach>
+    </select>
+
+    <select id="selectRecordsByBookNumber" resultMap="borrow">
+        select * from borrowing_records where book_number in
+        <foreach collection="list" item="book_number" open="(" separator="," close=")" >
+            #{book_number}
+        </foreach>
+    </select>
+
+    <select id="getRecordsFromReader" resultMap="borrow">
+
+        <if test="index != null and limit != null">
+            select * from (
+        </if>
+        select * from borrowing_records where 1=1
+        <if test="condition != '' and condition != null">
+            and return_state = '未归还'
+        </if>
+        and user_id = #{user_id}
+        <if test="index != null and limit != null">
+            ) t limit #{index},#{limit}
+        </if>
+
+    </select>
+
+    <select id="getRecordsCount" resultType="Integer">
+        select count(*) from borrowing_records
+        <if test="record_ids.size > 0">
+            where record_id in
+            <foreach collection="record_ids" item="record_id" open="(" separator="," close=")" >
+                #{record_id}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectRecordsByRecordIdList" resultMap="borrow">
+        <if test="index != null and limit != null">
+            select * from(
+        </if>
+            select * from borrowing_records where record_id in
+            <foreach collection="record_ids" item="record_id" open="(" separator="," close=")">
+                #{record_id}
+            </foreach>
+        <if test="index != null and limit != null">
+            ) t limit #{index},#{limit}
+        </if>
+    </select>
+
+    <select id="getBookRecords" resultMap="borrow">
+        select * from borrowing_records
+    </select>
+</mapper>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../layui/css/layui.css" th:href="@{/layui/css/layui.css}"/>
+    <style type="text/css">
+        #main{
+            border: 1px solid #b2b2b2;
+            width: 30%;
+            height: 550px;
+            margin: 7% 25%;
+            background-color: white;
+        }
+
+        #info{
+            height: 60px;
+            background-color: #009688;
+        }
+        #text{
+            line-height: 60px;
+            font-size: 20px;
+            color: white;
+            padding: 10px;
+        }
+        #container{
+            margin: 20px 10%;
+        }
+
+
+        #phoneNum{
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="main">
+    <div id="info">
+        <span id="text">图书证办理</span>
+    </div>
+    <div id="container">
+        <div id="phoneNum">
+            <input type="text" id="phone" style="width: 120%" name="title" placeholder="请输入手机号" autocomplete="off" class="layui-input">
+            <button type="submit" id="s-btn" class="layui-btn "><i class="layui-icon layui-icon-search"></i>搜索</button>
+        </div>
+
+        <div id="dataFrom">
+            <div class="layui-form layui-form-pane">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">名字</label>
+                    <div class="layui-input-block">
+                        <input type="text" id="userName" name="title" readonly="true" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">性别</label>
+                    <div class="layui-input-block">
+                        <input type="text" id="sex" name="title" readonly="true" autocomplete="off"  class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">Email</label>
+                    <div class="layui-input-block">
+                        <input type="text" id="email" name="title" readonly="true" autocomplete="off"  class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">角色</label>
+                    <div class="layui-input-block">
+                        <input type="text" id="role" name="title" readonly="true" autocomplete="off"  class="layui-input">
+                    </div>
+                </div>
+
+            </div>
+            <div class="layui-form-item" style="margin-left: 70%; margin-top: 30%">
+                <button class="layui-btn"  id="submit-btn" >办理图书证</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" th:src="@{/layui/layui.js}"></script>
+<script>
+    layui.use(['layer','jquery'],function () {
+        let layer = layui.layer;
+        let $ = layui.jquery;
+
+        let user_id ;
+        //===============获取用户数据=====================
+        $('#s-btn').click(function () {
+            selectUser('1')
+        })
+
+
+        //===========提交=============================
+        $('#submit-btn').click(function () {
+            if (user_id === null || user_id === ''||user_id == undefined){
+                selectUser('2')
+
+            }else {
+                handleCard(user_id)
+            }
+        })
+
+
+        //============根据user_id办理图书证==============
+        function handleCard(id) {
+            $.ajax({
+                type: 'get',
+                url: '/libraryCard/handle',
+                data:{
+                    "user_id":id
+                },
+                contentType: 'application/json',
+                success:function (data) {
+                    if (data > 0){
+                        layer.msg("办理成功！")
+                        $('#userName').val('');
+                        $('#sex').val('');
+                        $('#email').val('');
+                        $('#role').val('');
+                        $('#phone').val('');
+                    }else if (data === -1){
+                        layer.msg("该用户已经办理图书证！")
+                        $('#userName').val('');
+                        $('#sex').val('');
+                        $('#email').val('');
+                        $('#role').val('');
+                        $('#phone').val('');
+                    }
+                }
+            })
+        }
+
+        //============根据手机号查询用户==============
+        function selectUser(str) {
+            let phone = $('#phone').val();
+            if (phone === null || phone === ''){
+                layer.msg("请先输入手机号")
+            }else {
+                $.ajax({
+                    type:'get',
+                    url:'/userController/getUser',
+                    contentType:'application/json',
+                    data:{
+                        "phone":phone
+                    },
+                    success:function (data) {
+                        console.log(data)
+                        if (data === null || data === ''){
+                            layer.msg("用户不存在，请先注册！")
+                        }else {
+                            if (str === '1'){
+                                $('#userName').val(data['user_name']);
+                                $('#sex').val(data['gender']);
+                                $('#email').val(data['email']);
+                                $('#role').val(data['role']);
+                                user_id=data['user_id']
+                            }else {
+                                handleCard(data['user_id'])
+                            }
+                        }
+                    }
+                })
+            }
+        }
+
+
+    })
+</script>
+
+</body>
+</html>

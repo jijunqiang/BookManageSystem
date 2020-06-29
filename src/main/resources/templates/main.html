@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>后台首页</title>
+    <link rel="stylesheet" href="../layui/css/layui.css" th:href="@{/layui/css/layui.css}"/>
+    <style>
+        .login_info_temp  div{
+            padding: 10px 20px;
+        }
+       #newPass-img {
+            width: 25px;
+            height: 20px;
+            position: absolute;
+            right: 5px;
+            margin-top: 9px;
+            top: 1px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<!--<div class="layui-row layui-bg-black"> class="layui-col-lg2"-->
+<div class="layui-layout layui-layout-admin">
+<div class="layui-header">
+    <div class="layui-logo">
+        天天向上图书管
+    </div>
+    <div style="margin-left:200px;line-height: 60px;text-indent: 20px;color: white">
+        发奋识遍天下字，立志读尽人间书。
+    </div>
+<!--    <div class="layui-col-lg2 layui-col-lg-offset8">-->
+        <ul class="layui-nav layui-layout-right" lay-filter="">
+            <li class="layui-nav-item">
+                <a href="javascript:;"><img src="static/img/admin.jpg" th:src="@{/img/backgrounds.jpg}" class="layui-nav-img" />我</a>
+                <dl class="layui-nav-child">
+                    <dd id="personal-data">
+                        <a href="javascript:;">个人资料</a>
+                    </dd>
+                    <dd id="personal-update">
+                        <a href="javascript:;">修改信息</a>
+                    </dd>
+                    <dd id="pass-update">
+                        <a href="javascript:;">修改密码</a>
+                    </dd>
+                    <dd id="login-out">
+                        <a href="/userController/loginOut"><i class="layui-icon layui-icon-logout"></i>退出</a>
+                    </dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item" >
+                <a href="/page/reader" id="changeSystem">切换到前台系统</a>
+            </li>
+        </ul>
+</div>
+</div>
+<!--    </div>-->
+<!--</div>-->
+
+<div style="height:calc(100vh - 60px); display: flex;">
+    <div class="layui-bg-black">
+        <ul class="layui-nav layui-nav-tree" lay-filter="test">
+            <!-- 侧边导航: <ul class="layui-nav layui-nav-tree layui-nav-side"> layui-nav-itemed-->
+            <li class="layui-nav-item">
+                <a href="/page/success"  target="right">首页</a>
+            </li>
+            <li class="layui-nav-item ">
+                <a href="/userController/userInfo" target="right">用户管理</a>
+            </li>
+            <li class="layui-nav-item">
+                <a href="javascript:;" target="right">图书管理</a>
+                <dl class="layui-nav-child">
+                    <dd>
+                        <a href="/page/addBook" target="right">添加书籍</a>
+                    </dd>
+                    <dd>
+                        <a href="/page/editBook" target="right">编辑书籍</a><!---->
+                    </dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item">
+                <a href="javascript:;">借阅管理</a>
+                <dl class="layui-nav-child">
+                    <dd>
+                        <a href="/page/borrowBook" target="right">借书</a>
+                    </dd>
+                    <dd>
+                        <a href="/page/renewalAndReturn" target="right">续借与归还</a>
+                    </dd>
+                    <dd>
+                        <a href="/page/borrowRecords" target="right">借阅记录</a>
+                    </dd>
+                </dl>
+            </li>
+
+            <li class="layui-nav-item">
+                <a href="javascript:;">图书证管理</a>
+                <dl class="layui-nav-child">
+                    <dd>
+                        <a href="/page/handleLibraryCard" target="right">图书证办理</a>
+                    </dd>
+                    <dd>
+                        <a href="/page/lossAndHandle" target="right">挂失与补办</a>
+                    </dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item">
+                <a href="javascript:;" >综合查询统计</a>
+                <dl class="layui-nav-child">
+                    <dd>
+                        <a href="/page/userComprehensive" target="right">用户综合查询</a>
+                    </dd>
+                    <dd>
+                        <a href="/page/bookComprehensive" target="right">书籍综合查询</a>
+                    </dd>
+                    <dd>
+                        <a href="/page/borrowComprehensive" target="right">借阅综合查询</a>
+                    </dd>
+                </dl>
+            </li>
+
+            <li class="layui-nav-item">
+                <a href="/page/feedBack" id="fb" target="right" >意见反馈<span class="layui-badge" id="badge" th:if="${bf == null && count != null}" th:text="${count}"></span></a>
+            </li>
+        </ul>
+    </div>
+
+<!--    个人信息弹窗-->
+    <script id="login-info" type="text/html">
+        <div class="layui-form layui-form-pane" >
+            <div class="layui-form-item">
+                <label class="layui-form-label">用户名</label>
+                <div class="layui-input-block">
+                    <input type="text" readOnly="true" value="{{d.user_name}}" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">手机号</label>
+                <div class="layui-input-block">
+                    <input type="text" readOnly="true" value="{{d.phone}}" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">性别</label>
+                <div class="layui-input-block">
+                    <input type="text" readOnly="true" value="{{d.gender}}" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">Email</label>
+                <div class="layui-input-block">
+                    <input type="text" readOnly="true" value="{{d.email}}" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">注册日期</label>
+                <div class="layui-input-block">
+                    <input type="text"  readOnly="true" value="{{d.register_time}}" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">角色</label>
+                <div class="layui-input-block">
+                    <input type="text"  readOnly="true" value="{{d.role}}" class="layui-input">
+                </div>
+            </div>
+        </div>
+    </script>
+    <div id="login-info-model" style="display: none"></div>
+
+
+    <!--    个人信息修改弹窗-->
+    <script id="update-info" type="text/html">
+        <div class="layui-form layui-form-pane" >
+            <div class="layui-form-item">
+                <label class="layui-form-label">用户名</label>
+                <div class="layui-input-block">
+                    <input type="text" id="userName" value="{{d.user_name}}" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">Email</label>
+                <div class="layui-input-block">
+                    <input type="text" id="email" value="{{d.email}}" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">性别</label>
+                <div class="layui-input-block">
+                    <select type="text" name="city" id="gender"  lay-verify="" >
+                        <option value="male">男</option>
+                        <option value="female">女</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </script>
+    <div id="update-info-model" style="display: none"></div>
+
+    <!--    修改密码弹窗-->
+    <script id="update-pass" type="text/html">
+        <div class="layui-form layui-form-pane" >
+            <div class="layui-form-item">
+                <label class="layui-form-label">旧密码</label>
+                <div class="layui-input-block">
+                    <input type="password" id="oldPass" value="" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">新密码</label>
+                <div class="layui-input-block">
+                    <input type="password" id="newPass" οnfοcus="this.placeholder=''"
+                           οnblur="this.placeholder='密码'" value="" class="layui-input">
+                    <img id="newPass-img" οnclick="hideShowPsw()" src="../img/eye.png">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">确认密码</label>
+                <div class="layui-input-block">
+                    <input type="password" id="oncePass"  value="" class="layui-input">
+                </div>
+            </div>
+        </div>
+    </script>
+    <div id="update-pass-model" style="display: none"></div>
+
+    <div style="background-color:#FFF9EC;flex: 1; padding: 20px;box-sizing: border-box;height: 100%;display: flex;">
+        <!--<div style="flex: 1;box-sizing: border-box; height=100%;"> #FFF9EC-->
+        <iframe frameborder="0" src="success.html" th:src="@{/page/success}"  name="right" style="width: 100%;"></iframe>
+        <!--</div>-->
+    </div>
+
+<!--    <div class="layui-footer">-->
+<!--        底部栏-->
+<!--    </div>-->
+
+</div>
+
+
+
+<script type="text/javascript" src="../layui/layui.js" th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript" src="../static/js/jquery-3.1.1.min.js" th:src="@{/js/jquery-3.1.1.min.js}" ></script>
+<script>
+
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作   layui.util.toDateString(d.register_time, 'yyyy-MM-dd')
+    layui.use(['element','laypage','laytpl','jquery','layer','util','form'], function() {
+        var laytpl = layui.laytpl;
+        var $ = layui.jquery;
+        let layer = layui.layer;
+        var util = layui.util;
+        let form = layui.form;
+
+        //执行一个laypage实例
+        // laypage.render({
+        //     elem: 'pages' //注意，这里的 test1 是 ID，不用加 # 号
+        //     ,count: 50 //数据总数，从服务端得到
+        // });
+
+        //var getTpl = demo.innerHTML,
+        //	view = document.getElementById('view');
+        //laytpl(getTpl).render(data, function(html) {
+        //	view.innerHTML = html;
+        //});
+
+        // var data=[1,2,3,4,5,6,]
+        // laytpl($('#trTemplate').html()).render(data,function(html){
+        //     $('#dataContainer').html(html)
+        // })
+
+        // form.on('select(hc_select)', function (data) {
+        //     var select_text = data.elem[data.elem.selectedIndex].text;
+        //     $("#HandoverCompany").val(select_text );
+        //     $("#hc_select").next().find("dl").css({ "display": "none" });
+        //     form.render();
+        // });
+
+        //=======个人信息===================
+        $('#personal-data').click(function () {
+            $.ajax({
+                type:'get',
+                url:'/userController/getLoginUser',
+                contentType:'application/json',
+                success:function(data){
+
+                    //获取日期
+                    let datum = data['register_time'];
+                    //格式化日期
+                    function frm_time(d) {
+                        return util.toDateString(d, "yyyy-MM-dd");
+                    }
+                    data['register_time']=frm_time(datum)
+
+                    laytpl($('#login-info').html()).render(data,function(html){
+                        $('#login-info-model').html(html)
+                    })
+                        layer.open({
+                        skin: 'layui-layer-molv',
+                        type: 1,
+                        area: ['400px', '500px'],
+                        btn: ['关闭'],
+                        title:'个人资料',
+                        content: $('#login-info-model')
+                    });
+                }
+            })
+        })
+
+        //=======个人信息修改===================
+        $('#personal-update').click(function () {
+            $.ajax({
+                type:'get',
+                url:'/userController/getLoginUser',
+                contentType:'application/json',
+                success:function(data){
+                    laytpl($('#update-info').html()).render(data,function(html){
+                        $('#update-info-model').html(html)
+                    })
+
+                    layer.open({
+                        skin: 'layui-layer-molv',
+                        type: 1,
+                        area: ['400px', '400px'],
+                        btn: ['修改','关闭'],
+                        title:'修改资料',
+                        content: $('#update-info-model'),
+                        success:function(index, layero){
+                            let gender = data.gender;
+                            $('#gender').val(gender)
+                            form.render();
+                        },
+                        yes: function(index, layero){
+                            let str = {
+                                "user_name":$('#userName').val(),
+                                "email":$('#email').val(),
+                                "gender":$('#gender').val(),
+                                "user_id":data.user_id
+                            }
+                            console.log(str)
+                            $.ajax({
+                                type:'post',
+                                url:'/userController/updateUserInfo',
+                                data:JSON.stringify(str),
+                                contentType:'application/json',
+                                success:function (res) {
+                                        layer.msg("修改成功！")
+                                }
+
+                            })
+                            layer.close(index); //如果设定了yes回调，需进行手工关闭
+                        }
+                    });
+
+                }
+            })
+        })
+
+        //=========修改密码===================
+        $('#pass-update').click(function () {
+            let data={
+                "oldPass":"oldPass",
+                "newPass": "newPass",
+                "oncePass":"oncePass"
+            }
+
+            laytpl($('#update-pass').html()).render(data,function(html){
+                $('#update-pass-model').html(html)
+            });
+
+            layer.open({
+                skin: 'layui-layer-molv',
+                type: 1,
+                area: ['400px', '300px'],
+                btn: ['修改','关闭'],
+                title:'修改密码',
+                content: $('#update-pass-model'),
+                success:function(index, layero){
+                    //===============密码的可见与不可见=======================
+                    $('#newPass-img').click(function () {
+                        let demoImg = document.getElementById("newPass-img");
+                        let PWD = document.getElementById("newPass");
+                        function hideShowPsw() {
+                            if (PWD.type == "password") {
+                                PWD.type = "text";
+                                demoImg.src = "../img/close_eye.png"; //图片路径（闭眼图片）
+                            } else {
+                                PWD.type = "password";
+                                demoImg.src = "../img/eye.png"; // 图片路径（睁眼图片）
+                            }
+                        }
+                        hideShowPsw()
+                    })
+                },
+                yes:function (index, layero) {
+                    let oldPass = $('#oldPass').val();
+                    let newPass = $('#newPass').val();
+                    let oncePass = $('#oncePass').val();
+                    if (oldPass == null || oldPass == ""){
+                        layer.msg("请输入旧密码")
+                    }else if (newPass == null || newPass == ""){
+                        layer.msg("请输入新密码")
+                    }else if (oncePass == null || oncePass == ""){
+                        layer.msg("请输入确认密码")
+                    }else {
+                        layer.confirm('修改密码后要重新登陆，是否修改？', {
+                            btn: ['修改','取消'] //按钮
+                        }, function(){
+                            if (newPass.length>=3&&newPass.length<=8){
+                                if (newPass === oncePass){
+                                    $.ajax({
+                                        type:'get',
+                                        async: false,
+                                        url:'/userController/updatePassword',
+                                        data:{
+                                            "oldPass":oldPass,
+                                            "newPass":newPass,
+                                            "oncePass":oncePass
+                                        },
+                                        contentType:'application/json',
+                                        success:function (data) {
+                                            layer.msg(data, {
+                                                time: 2000, //2s后自动关闭
+                                            });
+                                            if (data == "修改成功！"){
+                                                location.href="/"
+                                            }
+                                            layer.close(index)
+                                        }
+                                    })
+                                }else {
+                                    layer.msg("新密码与确认密码不同！")
+                                }
+                            }else {
+                                layer.msg("密码为3~8位")
+                            }
+
+                        }, function(){
+
+                        });
+                    }
+                }
+            })
+        })
+
+        //===========点击徽章消失================
+        $('#fb').click(function () {
+            $('#badge').hide()
+        })
+
+
+        //===========退出登录====================
+        $('#login-out').click(function () {
+            loginOut()
+        })
+
+        //===========退出登录==方法==================
+        function loginOut() {
+            $.ajax({
+                type:'get',
+                url:'/userController/loginOut',
+                contentType:'application/json',
+            })
+        }
+
+
+
+
+
+    });
+
+</script>
+</body>
+</html>

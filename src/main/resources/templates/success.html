@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../layui/css/layui.css" th:href="@{/layui/css/layui.css}"/>
+</head>
+<body>
+
+
+<div class="layui-row" style="margin-top: 5%">
+    <div class="layui-col-md6">
+        <div id="container" ></div>
+        <div style="margin: 30px 0 0 36%;font-size: 30px">男女比例图</div>
+    </div>
+    <div class="layui-col-md6">
+        <div id="book-container" ></div>
+        <div style="margin: 30px 0 0 30%;font-size: 30px">借出类型比例图</div>
+    </div>
+</div>
+
+
+
+<script src="https://gw.alipayobjects.com/os/lib/antv/g2/4.0.6/dist/g2.min.js"></script>
+<script type="text/javascript" src="../layui/layui.js" th:src="@{/layui/layui.js}" ></script>
+<script type="text/javascript" src="../static/js/jquery-3.1.1.min.js" th:src="@{/js/jquery-3.1.1.min.js}" ></script>
+<script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.data-set-0.11.1/dist/data-set.js"></script>
+<script>
+
+    layui.use(['element','laypage','laytpl','jquery','table','util'], function() {
+        let $ = layui.jquery;
+        getSexCount();
+        getBookClassfi();
+
+
+        function getSexCount() {
+            $.ajax({
+                type: 'get',
+                url: '/userController/getSexCount',
+                contentType: 'application/json',
+                success:function (res) {
+                    let num=0;
+                    for (let i in res){
+                        num += res[i].count;
+                    }
+                    const chart = new G2.Chart({
+                        container: 'container',
+                        width:700,
+                        height: 500,
+                    });
+                    chart.data(res);
+                    chart.scale('percent', {
+                        formatter: (val) => {
+                            val = val * 100 + '%';
+                            return val;
+                        },
+                    });
+                    chart.coordinate('theta', {
+                        radius: 0.75,
+                        innerRadius: 0.6,
+                    });
+                    chart.tooltip({
+                        showTitle: false,
+                        showMarkers: false,
+                        itemTpl: '<li class="g2-tooltip-list-item"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</li>',
+                    });
+                    // 辅助文本
+                    chart
+                        .annotation()
+                        .text({
+                            position: ['50%', '50%'],
+                            content: '共有',
+                            style: {
+                                fontSize: 14,
+                                fill: '#8c8c8c',
+                                textAlign: 'center',
+                            },
+                            offsetY: -20,
+                        })
+                        .text({
+                            position: ['50%', '50%'],
+                            content: num,
+                            style: {
+                                fontSize: 20,
+                                fill: '#8c8c8c',
+                                textAlign: 'center',
+                            },
+                            offsetX: -10,
+                            offsetY: 20,
+                        })
+                        .text({
+                            position: ['50%', '50%'],
+                            content: '人',
+                            style: {
+                                fontSize: 14,
+                                fill: '#8c8c8c',
+                                textAlign: 'center',
+                            },
+                            offsetY: 20,
+                            offsetX: 20,
+                        });
+                    chart
+                        .interval()
+                        .adjust('stack')
+                        .position('percent')
+                        .color('gender')
+                        .label('percent', (percent) => {
+                            return {
+                                content: (res) => {
+                                    return `${res.gender}: ${percent * 100}%`;
+                                },
+                            };
+                        })
+                        .tooltip('gender*percent', (gender, percent) => {
+                            percent = percent * 100 + '%';
+                            return {
+                                name: gender,
+                                value: percent,
+                            };
+                        });
+
+                    chart.interaction('element-active');
+                    chart.render();
+                }
+            })
+        }
+
+
+        function getBookClassfi() {
+            $.ajax({
+                type: 'get',
+                url: '/bookController/getBookClassficaCount',
+                contentType: 'application/json',
+                success: function (res) {
+                    const { DataView } = DataSet;
+                    const dv = new DataView().source(res);
+                    dv.transform({
+                        type: 'fold',
+                        fields:['count'], // 展开字段集
+                        key: 'user', // key字段
+                        value: 'score', // value字段
+                    });
+
+                    const chart = new G2.Chart({
+                        container: 'book-container',
+                        width:700,
+                        height: 500,
+                    });
+                    chart.data(dv.rows);
+                    chart.scale('score', {
+                        min: 0,
+                        max: 10,
+                    });
+                    chart.coordinate('polar', {
+                        radius: 0.8,
+                    });
+                    chart.tooltip({
+                        shared: true,
+                        showCrosshairs: true,
+                        crosshairs: {
+                            line: {
+                                style: {
+                                    lineDash: [4, 4],
+                                    stroke: '#333'
+                                }
+                            }
+                        }
+                    });
+                    chart.axis('classfica', {
+                        line: null,
+                        tickLine: null,
+                        grid: {
+                            line: {
+                                style: {
+                                    lineDash: null,
+                                },
+                            },
+                        },
+                    });
+                    chart.axis('score', {
+                        line: null,
+                        tickLine: null,
+                        grid: {
+                            line: {
+                                type: 'line',
+                                style: {
+                                    lineDash: null,
+                                },
+                            },
+                        },
+                    });
+
+                    chart
+                        .line()
+                        .position('classfica*score')
+                        .color('user')
+                        .size(2);
+                    chart
+                        .point()
+                        .position('classfica*score')
+                        .color('user')
+                        .shape('circle')
+                        .size(4)
+                        .style({
+                            stroke: '#fff',
+                            lineWidth: 1,
+                            fillOpacity: 1,
+                        });
+                    chart
+                        .area()
+                        .position('classfica*score')
+                        .color('user');
+                    chart.render();
+
+                }
+            })
+        }
+
+    })
+</script>
+</body>
+</html>
